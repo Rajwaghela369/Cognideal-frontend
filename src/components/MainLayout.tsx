@@ -1,8 +1,7 @@
-import { Outlet, useLocation } from 'react-router'
+import { Outlet } from 'react-router'
 import { useSidebarState } from '../lib/useSidebarState'
 import { Sidebar } from './Sidebar'
 import { BootCheck } from './BootCheck'
-import { LandingPage } from '../pages/LandingPage'
 import './Layout.css'
 
 /**
@@ -10,14 +9,7 @@ import './Layout.css'
  * `<Outlet/>`; the sidebar reads the active page from the URL.
  */
 export function MainLayout() {
-  const location = useLocation()
-  // Keep hooks unconditional because the root landing page and app shell share
-  // this route component while navigation moves between them.
   const { collapsed, toggle } = useSidebarState()
-
-  if (location.pathname === '/') {
-    return <LandingPage />
-  }
 
   // Owned here rather than inside `Sidebar`, because the shell needs the class
   // too -- the content area's width is the other half of collapsing.

@@ -36,7 +36,7 @@ export function RouteError() {
               <Button variant="primary" onClick={() => window.location.reload()}>
                 Reload
               </Button>
-              <Button onClick={() => navigate('/')}>Back to dashboard</Button>
+              <Button onClick={() => navigate('/dashboard')}>Back to dashboard</Button>
             </>
           }
         />

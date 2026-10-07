@@ -17,6 +17,7 @@ import { ChatPage } from './pages/chat/ChatPage'
 import { DealChat } from './pages/chat/DealChat'
 import { DashboardPage } from './pages/DashboardPage'
 import { ComingSoon } from './pages/ComingSoon'
+import { LandingPage } from './pages/LandingPage'
 
 /**
  * The route tree, in one place (task 0.3).
@@ -34,15 +35,18 @@ import { ComingSoon } from './pages/ComingSoon'
  * Every phase is built, so the only remaining `ComingSoon` is the catch-all
  * for a URL that matches nothing. That is not an error boundary: nothing
  * threw, the path simply is not one of ours.
+ *
+ * `/` is the landing page, outside the app shell -- no sidebar, no boot
+ * check. Everything else sits under a pathless layout route, so the app's
+ * URLs are unchanged and the dashboard lives at `/dashboard`.
  */
 export const router = createBrowserRouter([
+  { path: '/', element: <LandingPage />, errorElement: <RouteError /> },
   {
-    path: '/',
     element: <MainLayout />,
     errorElement: <RouteError />,
     children: [
       // Phase 12. Last, because every number on it is established by 1-11.
-      { index: true, element: <DashboardPage /> },
       { path: 'dashboard', element: <DashboardPage /> },
 
       // ------------------------------------------------- Phase 2 and 3
