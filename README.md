@@ -1,75 +1,49 @@
-# React + TypeScript + Vite
+# CogniDeal Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The web app for CogniDeal, an evidence-grounded sales copilot. Built with
+React 19, TypeScript and Vite.
 
-Currently, two official plugins are available:
+The API lives in its own repository, **cognideal-backend**.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Local setup
 
-## React Compiler
+Requires Node 22+ and the backend running on port 8000.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+npm ci
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+The dev server runs on http://localhost:5173 and proxies `/api` and `/health`
+to `http://127.0.0.1:8000` (override with `VITE_API_PROXY_TARGET`). The app
+calls the API at the relative path `/api/v1`, so no API URL is configured in
+the code.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+| Command | |
+| --- | --- |
+| `npm run dev` | dev server with HMR |
+| `npm run build` | type-check and build to `dist/` |
+| `npm run lint` | ESLint |
+| `npm run preview` | preview the production build |
 
-```
+## Deploying on Render
+
+Create a **Static Site**:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `npm ci && npm run build` |
+| Publish directory | `dist` |
+
+Add these rewrite rules, in this order, so the browser keeps talking to one
+origin and client-side routes resolve:
+
+| Source | Destination | Action |
+| --- | --- | --- |
+| `/api/*` | `https://<backend>.onrender.com/api/*` | Rewrite |
+| `/health` | `https://<backend>.onrender.com/health` | Rewrite |
+| `/*` | `/index.html` | Rewrite |
+
+Plans and test notes: [`docs/frontend/`](docs/frontend/).
