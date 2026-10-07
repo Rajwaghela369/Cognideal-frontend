@@ -29,8 +29,8 @@ export function BootCheck() {
   if (error) {
     return (
       <div className="boot-banner" role="alert">
-        <strong>Cannot reach the API.</strong> Start the backend
-        (<code>uvicorn app.main:app</code>) or the compose stack, then reload.
+        <strong>Can&rsquo;t connect to CogniDeal right now.</strong> The service may be
+        starting up &mdash; please reload in a moment.
       </div>
     )
   }
@@ -41,8 +41,8 @@ export function BootCheck() {
   if (data && data.status !== 'ok') {
     return (
       <div className="boot-banner" role="alert">
-        <strong>The API cannot reach its database.</strong>{' '}
-        {data.detail ?? 'Every page below will fail until that is fixed.'}
+        <strong>CogniDeal is temporarily unavailable.</strong> Some data may not load
+        &mdash; please try again shortly.
       </div>
     )
   }

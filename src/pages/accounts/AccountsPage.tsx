@@ -213,9 +213,8 @@ export function AccountsPage() {
           pendingDelete && pendingDelete.deal_count > 0 ? (
             <>
               This account has <strong>{pendingDelete.deal_count}</strong> deal
-              {pendingDelete.deal_count === 1 ? '' : 's'}, and the API will refuse to
-              delete it. Delete those deals first -- one at a time, so the scale of what
-              is being destroyed stays visible.
+              {pendingDelete.deal_count === 1 ? '' : 's'}, so it can&rsquo;t be deleted yet.
+              Delete those deals first.
             </>
           ) : (
             <>

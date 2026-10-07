@@ -95,15 +95,11 @@ export function AnalysisPanel({ dealId }: AnalysisPanelProps) {
           )}
           {state.data?.swept_at && (
             <p className="ui-muted">
-              Last swept {formatRelative(state.data.swept_at)}
-              {/* Why it was marked dirty. The worker records a reason like
-                  `deal.value,expected_close_date`, and seeing it is the
-                  difference between "something changed" and knowing what. */}
-              {state.data.dirty_reason && <> &middot; triggered by {state.data.dirty_reason}</>}
+              Last checked {formatRelative(state.data.swept_at)}
             </p>
           )}
           {state.data && !state.data.swept_at && (
-            <p className="ui-muted">This deal has never been swept.</p>
+            <p className="ui-muted">This deal has not been checked yet.</p>
           )}
         </div>
 
@@ -112,32 +108,13 @@ export function AnalysisPanel({ dealId }: AnalysisPanelProps) {
         </Button>
       </div>
 
-      {/* Task 3.6. Precise about what is and is not affected, because the
-          deterministic detector behind "Run checks" works regardless -- the
-          plan's own point in 6.7 is that an empty risk list never means
-          "AI is off". */}
       {aiDisabled && (
         <div className="ui-callout ui-callout--warn">
-          <strong>The AI layer is disabled.</strong> "Run checks" still works -- the
-          deterministic detector needs no model -- but nothing will extract facts, write
-          briefs or answer chat until the layer is enabled and the worker is running.
+          <strong>AI features are turned off.</strong> &ldquo;Run checks&rdquo; still works,
+          but facts, meeting briefs and the assistant are unavailable until AI is enabled.
         </div>
       )}
 
-      {/* The worker is a separate container, and a queue that only grows is
-          how its absence shows up. `sweep_backlog` is the honest signal:
-          the sweep claims one deal per pass by design, so a number that
-          never falls means nothing is consuming it. */}
-      {ai.data && ai.data.config.enabled && ai.data.queues.sweep_backlog > 0 && (
-        <p className="analysis-panel__queue ui-muted">
-          Worker backlog: {ai.data.queues.sweep_backlog} deal
-          {ai.data.queues.sweep_backlog === 1 ? '' : 's'} awaiting a sweep
-          {ai.data.queues.queued_meetings > 0 && (
-            <>, {ai.data.queues.queued_meetings} meeting analysis queued</>
-          )}
-          . If these numbers never fall, the worker is not running.
-        </p>
-      )}
     </div>
   )
 }

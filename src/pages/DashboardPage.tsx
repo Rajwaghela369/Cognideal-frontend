@@ -144,9 +144,8 @@ export function DashboardPage() {
               is no stored summary, so they are always current.
             </p>
             <p>
-              This view reads up to {PIPELINE_LIMIT} deals in one request. Beyond that the
-              totals would cover only part of the pipeline, and the page says so rather than
-              showing a partial figure as if it were complete.
+              This view covers up to {PIPELINE_LIMIT} deals. With more than that, the page
+              says the totals are partial.
             </p>
           </>
         }
@@ -363,9 +362,8 @@ export function DashboardPage() {
           description="Whether the analysis layer is running, and how much is waiting."
           info={
             <p>
-              Risk detection runs on database queries and works whether or not the model
-              layer is enabled. Transcript extraction, meeting briefs and the assistant all
-              require it.
+              Risk checks work whether or not AI features are enabled. Fact extraction,
+              meeting briefs and the assistant need them.
             </p>
           }
         >

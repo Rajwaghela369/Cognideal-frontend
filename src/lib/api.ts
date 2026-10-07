@@ -62,7 +62,7 @@ export class ApiError extends Error {
 /** Thrown when the request never reached the server -- the API is down. */
 export class NetworkError extends Error {
   constructor(cause: unknown) {
-    super('Cannot reach the API. Is the backend running?')
+    super('Can’t connect to CogniDeal. Please check your connection and try again.')
     this.name = 'NetworkError'
     this.cause = cause
   }

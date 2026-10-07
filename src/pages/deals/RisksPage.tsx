@@ -298,7 +298,7 @@ export function RisksPage() {
                 title={all.length === 0 ? 'No risks detected' : 'Nothing matches'}
                 body={
                   all.length === 0
-                    ? 'The checks ran and found nothing. Most of them are deterministic queries over records that already exist, so this is a real result rather than a missing feature.'
+                    ? 'The checks ran and found nothing to flag on this deal.'
                     : severityFilter
                       ? `No live ${severityFilter} risks.`
                       : 'Every detected risk has been resolved or dismissed.'
@@ -438,7 +438,7 @@ function RiskCard({
             <Badge tone={live ? 'info' : 'ok'}>{humanise(risk.status)}</Badge>
           )}
           {risk.origin !== 'ai' && (
-            <Badge tone="neutral" title="Recorded by a person, not the detector.">
+            <Badge tone="neutral" title="Added by a person, not by the AI analysis.">
               added by hand
             </Badge>
           )}
@@ -446,7 +446,7 @@ function RiskCard({
             {/* `risk_type` is `other` when the model named the risk itself.
                 `risk_key` holds the slug but no response schema returns it, so
                 the model-written title is what identifies it. */}
-            {risk.risk_type === 'other' ? 'model-named' : humanise(risk.risk_type)}
+            {risk.risk_type === 'other' ? 'other' : humanise(risk.risk_type)}
           </span>
         </div>
 

@@ -25,7 +25,7 @@ export interface DismissDialogProps {
 const REASON_HELP: Record<DismissalReason, string> = {
   already_handled: 'The suggestion is right, but this is already done or in hand.',
   not_relevant: 'Correct about the facts, but it does not matter on this deal.',
-  wrong: 'The claim behind it is not true. This is the one that says the detector is at fault.',
+  wrong: 'The claim behind it is not true -- the analysis got it wrong.',
   bad_timing: 'Right thing, wrong moment -- worth revisiting later.',
   other: 'None of the above. Please say why in the note.',
 }

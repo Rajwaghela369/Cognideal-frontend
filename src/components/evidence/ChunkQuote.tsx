@@ -78,7 +78,7 @@ export function ChunkQuote({ item }: ChunkQuoteProps) {
   }
 
   if (chunk.isError) {
-    return <ErrorState error={chunk.error} title="The cited chunk could not be loaded" />
+    return <ErrorState error={chunk.error} title="The quoted source could not be loaded" />
   }
 
   const { content } = chunk.data

@@ -92,7 +92,7 @@ export function BriefPanel({ dealId, meetingId, aiEnabled }: BriefPanelProps) {
           title="No brief yet"
           body={
             aiEnabled === false
-              ? 'Generating a brief needs the AI layer, which is currently disabled. Unlike the risk detector, there is no deterministic version of this.'
+              ? 'Meeting briefs need AI features, which are currently turned off.'
               : 'A brief is written once and stored. Generate it before the meeting -- it reads the deal, its risks and the recent transcripts.'
           }
           actions={

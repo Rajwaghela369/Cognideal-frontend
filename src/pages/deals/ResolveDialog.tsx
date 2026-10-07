@@ -241,7 +241,7 @@ export function ResolveDialog({
                 type="text"
                 value={email}
                 maxLength={320}
-                hint="Optional, and usually unknown for a transcript speaker -- which is exactly why this path does not require it. A duplicate on this account is a 409."
+                hint="Optional. Usually unknown for someone heard on a call."
                 error={fieldError('email')}
                 onChange={(event) => setEmail(event.target.value)}
               />

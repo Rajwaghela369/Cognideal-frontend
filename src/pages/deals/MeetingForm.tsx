@@ -211,7 +211,7 @@ export function MeetingForm({ meeting, busy, error, onSubmit, onClose }: Meeting
               label="Summary"
               optional
               value={summary}
-              hint="Your own notes. The analyzer writes to this same field and meetings carry no origin column, so once both have written here there is no way to tell which did."
+              hint="Your own notes. The AI analysis may also write a summary here."
               error={fieldError('summary')}
               onChange={(event) => setSummary(event.target.value)}
             />

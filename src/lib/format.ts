@@ -199,7 +199,7 @@ export function analysisLabel(state: AnalysisState): { tone: BadgeTone; label: s
     case 'due':
       return { tone: 'warn', label: 'Queued' }
     case 'stale':
-      return { tone: 'neutral', label: 'Awaiting sweep' }
+      return { tone: 'neutral', label: 'Due for a check' }
     default:
       return { tone: 'neutral', label: humanise(state) }
   }
@@ -213,13 +213,13 @@ export function analysisExplanation(
 ): string {
   switch (state) {
     case 'clean':
-      return 'Nothing is pending and this deal was swept inside the current window.'
+      return 'Nothing is pending. This deal was checked recently.'
     case 'debouncing':
-      return `Edits are still arriving. The worker waits ${debounceSeconds}s of quiet before running, so further changes collapse into one pass.`
+      return `Recent changes are being collected. Analysis starts after ${debounceSeconds}s without further edits.`
     case 'due':
-      return 'Past the quiet window. The worker claims this deal on its next poll.'
+      return 'Analysis will start shortly.'
     case 'stale':
-      return `Not marked dirty, but it has not been swept in ${sweepHours}h, so the sweep will pick it up.`
+      return `Not checked in the last ${sweepHours}h, so it will be re-checked automatically.`
     default:
       return ''
   }
@@ -247,14 +247,14 @@ export function meetingAnalysisLabel(status: MeetingAnalysisStatus): {
       return {
         tone: 'ok',
         label: 'Analysed',
-        explanation: 'The pipeline finished. Check for a partial failure below.',
+        explanation: 'Analysis finished. Any part that could not complete is noted below.',
       }
     case 'queued':
       return {
         tone: 'info',
         label: 'Queued',
         explanation:
-          'Accepted, not done. The worker claims it on its next poll -- if this never changes, the worker is not running.',
+          'Waiting to start. This usually takes a few moments.',
       }
     case 'running':
       return { tone: 'info', label: 'Running', explanation: 'Analysis is in progress.' }
@@ -263,14 +263,14 @@ export function meetingAnalysisLabel(status: MeetingAnalysisStatus): {
         tone: 'danger',
         label: 'Failed',
         explanation:
-          'A critical stage failed and this is not retried automatically. It will stay here until someone re-runs it.',
+          'Analysis could not complete and will not retry on its own. Run it again to retry.',
       }
     case 'not_started':
     default:
       return {
         tone: 'neutral',
         label: 'Not analysed',
-        explanation: 'Nothing has been queued. A transcript is what makes a meeting analysable.',
+        explanation: 'Not analysed yet. Attach a transcript to analyse this meeting.',
       }
   }
 }

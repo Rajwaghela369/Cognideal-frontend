@@ -149,7 +149,7 @@ export function DocumentsPage() {
     },
     {
       key: 'chunks',
-      header: 'Chunks',
+      header: 'Sections',
       numeric: true,
       // Task 4.3. The count is the point: a document with zero chunks can
       // carry no citation, so it is present in this list and invisible to
@@ -159,7 +159,7 @@ export function DocumentsPage() {
         row.chunk_count > 0 ? (
           row.chunk_count
         ) : (
-          <Badge tone="danger" title="A document with no chunks cannot back any citation.">
+          <Badge tone="danger" title="No readable text was found in this document.">
             none
           </Badge>
         ),
@@ -284,8 +284,7 @@ export function DocumentsPage() {
         body={
           <>
             <p>
-              This deletes the row, its {pendingDelete?.chunk_count ?? 0} chunk
-              {pendingDelete?.chunk_count === 1 ? '' : 's'} and the stored file.
+              This permanently deletes the document and its stored file.
             </p>
             {/* The consequence worth stating: claims survive their evidence.
                 That is deliberate -- a risk whose quote was deleted is an
@@ -293,10 +292,9 @@ export function DocumentsPage() {
                 happened. But it does mean deleting a transcript can leave
                 assertions on the Risks tab with nothing behind them. */}
             <p style={{ marginTop: 'var(--space-3)' }}>
-              Any citation pointing at those chunks is cleared, but the{' '}
-              <strong>claims themselves survive</strong> -- a risk whose quote is gone
-              becomes an uncited risk rather than disappearing. If a meeting used this as
-              its transcript, it silently loses that link.
+              Risks and facts that quoted it are kept, but they will no longer show this
+              document as their source. If a meeting used it as its transcript, the
+              meeting will no longer have one.
             </p>
           </>
         }
@@ -308,9 +306,8 @@ export function DocumentsPage() {
       />
 
       <p className="ui-muted documents__note">
-        Re-uploading a file that is already stored is harmless: <code>documents</code>{' '}
-        carries a uniqueness constraint on the file's hash, so it answers with the
-        existing document instead of making a second copy.
+        Uploading the same file again is safe &mdash; it is recognised and no duplicate is
+        created.
       </p>
     </div>
   )

@@ -277,11 +277,8 @@ export function AccountDetailPage() {
               stakeholder.
             </p>
             <p style={{ marginTop: 'var(--space-3)' }}>
-              Their <strong>meeting attendee rows survive</strong>, with the contact link
-              set back to empty. That is deliberate: the row records that a name spoke in
-              a transcript, which stays true whether or not this person is still tracked.
-              Those attendees return to the unresolved state, so they will reappear as
-              untracked participants.
+              Meetings they attended keep their name, but it is no longer linked to a
+              contact, so they will reappear as untracked participants.
             </p>
           </>
         }

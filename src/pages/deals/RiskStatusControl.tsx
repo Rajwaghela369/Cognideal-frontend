@@ -16,12 +16,12 @@ export interface RiskStatusControlProps {
  * stating before someone picks it.
  */
 const STATUS_HELP: Record<RiskStatus, string> = {
-  open: 'Back to open. Any resolved timestamp is cleared -- a reopened risk carrying the time it was resolved reads as closed to anything checking that column.',
+  open: 'Back to open. It counts as live again.',
   mitigating: 'Someone is working on it. Still counted as live.',
   resolved:
-    'The situation changed. Stamps a resolved time, and frees the detector to raise this risk type again later -- a stall that recurs in December is a new stall.',
+    'The situation changed. If the same problem comes back later, it will be raised again as a new risk.',
   dismissed:
-    'A human decided it does not matter. Deliberately not "resolved": nothing was fixed, and conflating the two would corrupt any measure of how many risks actually got addressed.',
+    'You decided it does not matter. Unlike resolved, nothing was fixed, so it is counted separately.',
 }
 
 /**

@@ -36,7 +36,7 @@ function verdictLabel(verdict: Verdict | null): {
       return {
         tone: 'ok',
         label: 'Quote checks out',
-        help: 'Gate 1 read the quote and the claim, and the quote supports it.',
+        help: 'The quote was checked against the claim, and it supports it.',
       }
     case 'partial':
       return {
@@ -60,7 +60,7 @@ function verdictLabel(verdict: Verdict | null): {
       return {
         tone: 'neutral',
         label: 'Not checked',
-        help: 'Gate 1 has not validated this one. Absent is not a pass.',
+        help: 'This one has not been checked yet.',
       }
   }
 }
@@ -221,7 +221,7 @@ export function FactsPage() {
                 <strong>
                   {thin} of {all.length} have a thin quote.
                 </strong>{' '}
-                The cited span covers only part of the claim, usually because it is too
+                The quote covers only part of the claim, usually because it is too
                 short. The claim may still be correct &mdash; read the quote before
                 accepting.
                 {unchecked > 0 && <> {unchecked} have not been checked.</>}
@@ -275,9 +275,8 @@ export function FactsPage() {
       )}
 
       <p className="ui-muted documents__note">
-        Facts Gate 1 found <em>contradicted</em> or <em>unsupported</em> are quarantined by
-        the API and cannot be requested, so this is not the complete set of what the model
-        proposed &mdash; only what survived the automated checks.
+        Facts that failed the automatic checks are hidden, so this list shows only what
+        passed them.
       </p>
     </div>
   )
@@ -339,8 +338,7 @@ function FactRow({
           </blockquote>
         ) : (
           <p className="ui-callout ui-callout--danger fact__nowarn">
-            No evidence recorded. Gate 0 rejects facts without a span on insert, so this
-            row should not exist.
+            No source quote is recorded for this fact.
           </p>
         )}
 

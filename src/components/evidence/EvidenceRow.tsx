@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { EvidenceItem } from '../../lib/types'
-import { formatDateTime } from '../../lib/format'
+import { formatDateTime, humanise } from '../../lib/format'
 import { SOURCE_KIND_LABELS, verificationLabel } from '../../lib/verification'
 import { Badge, Button } from '../ui'
 import { ChunkQuote } from './ChunkQuote'
@@ -11,17 +11,27 @@ export interface EvidenceRowProps {
   defaultOpen?: boolean
 }
 
-/** `{table, id, field}` as something readable. */
+/** Which record backs this: "Deal record · stage", not `deals.stage row <uuid>`. */
+const RECORD_LABELS: Record<string, string> = {
+  deals: 'Deal record',
+  deal_contacts: 'Stakeholder record',
+  contacts: 'Contact record',
+  accounts: 'Account record',
+  meetings: 'Meeting record',
+  meeting_attendees: 'Meeting attendance',
+  tasks: 'Task',
+  deal_stage_history: 'Stage history',
+  commitments: 'Commitment',
+}
+
 function RecordLocation({ item }: { item: EvidenceItem }) {
   const ref = item.record_ref
   if (!ref) return null
+  const label = ref.table ? RECORD_LABELS[ref.table] ?? humanise(ref.table) : 'Record'
   return (
     <p className="evidence__record">
-      <code>
-        {ref.table ?? 'unknown table'}
-        {ref.field ? `.${ref.field}` : ''}
-      </code>
-      {ref.id && <span className="ui-muted evidence__record-id"> row {ref.id}</span>}
+      {label}
+      {ref.field && <span className="ui-muted"> &middot; {humanise(ref.field)}</span>}
     </p>
   )
 }
@@ -112,8 +122,7 @@ export function EvidenceRow({ item, defaultOpen = false }: EvidenceRowProps) {
             // `source_kind` is `document` but there is no chunk to resolve,
             // so the quote cannot be checked against anything. Worth saying.
             <p className="ui-muted evidence__derived-note">
-              This quote has no chunk reference, so it cannot be located in a source
-              document.
+              The source document for this quote is no longer available.
             </p>
           )}
         </>

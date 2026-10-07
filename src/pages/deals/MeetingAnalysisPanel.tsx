@@ -55,7 +55,7 @@ export function MeetingAnalysisPanel({ meeting, aiEnabled }: MeetingAnalysisPane
       ])
       // 202, not 200: queued is the honest word here. Unlike the deal
       // detector, this genuinely is handed to the worker.
-      toast.success('Queued. The worker picks it up on its next poll.')
+      toast.success('Analysis queued. It will start shortly.')
     },
     onError: (error) => toast.error(errorMessage(error)),
   })
@@ -72,7 +72,7 @@ export function MeetingAnalysisPanel({ meeting, aiEnabled }: MeetingAnalysisPane
   return (
     <Card
       title="Analysis"
-      description="Extraction, reconciliation and the summary, run by the worker over the transcript."
+      description="Facts, commitments and a summary drawn from the meeting transcript."
       actions={
         <Button
           size="sm"
@@ -149,8 +149,8 @@ export function MeetingAnalysisPanel({ meeting, aiEnabled }: MeetingAnalysisPane
 
         {aiEnabled === false && data?.has_transcript && (
           <div className="ui-callout ui-callout--warn">
-            <strong>The AI layer is disabled.</strong> Queuing will add this meeting to a
-            queue nothing is draining.
+            <strong>AI features are turned off.</strong> This meeting can&rsquo;t be
+            analysed until they are enabled.
           </div>
         )}
 
@@ -168,13 +168,6 @@ export function MeetingAnalysisPanel({ meeting, aiEnabled }: MeetingAnalysisPane
           <div className="brief__section">
             <h4 className="brief__heading">Summary</h4>
             <p className="brief__body">{data.summary}</p>
-            {/* `meetings` has no `origin` column, so a human-typed summary
-                and a generated one are indistinguishable once both exist.
-                Said plainly rather than implying this text is the model's. */}
-            <p className="ui-muted brief__meta">
-              This field is writable by hand as well as by the analyzer, and meetings
-              carry no origin column -- so this text cannot be attributed to either.
-            </p>
           </div>
         )}
       </div>

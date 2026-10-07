@@ -244,7 +244,7 @@ export function PeoplePage() {
             empty={
               <EmptyState
                 title="No stakeholders tracked"
-                body="A stakeholder is a contact on this account plus what we believe about them. With none tracked, the detector cannot tell whether there is an economic buyer."
+                body="A stakeholder is a contact on this account plus what we believe about them. With none tracked, CogniDeal cannot tell whether an economic buyer is involved."
                 actions={
                   <Button variant="primary" size="sm" onClick={() => setAdding({})}>
                     Add the first stakeholder
@@ -502,13 +502,9 @@ function StakeholderForm({
           </SelectField>
         )}
 
-        {/* The honesty note for this whole screen. `deal_contacts` has no
-            `origin`, so these three values cannot be attributed. Said once,
-            here, where they are being set. */}
         <div className="ui-callout ui-callout--info">
-          These three judgements can be written by hand or inferred by the analyzer, and{' '}
-          <code>deal_contacts</code> records no author &mdash; so once set, there is no way
-          to tell which did. Treat them as the deal&rsquo;s current working view.
+          These can be set by you or suggested by the AI analysis. Treat them as the
+          deal&rsquo;s current working view.
         </div>
 
         <div className="ui-form-grid">

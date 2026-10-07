@@ -38,10 +38,10 @@ export interface DocumentUploadProps {
  */
 const SOURCE_TYPE_HINTS: Record<DocumentSourceType, string> = {
   meeting_transcript:
-    'Makes a meeting analysable, and queues the deal for re-analysis. This is the one that feeds extraction.',
-  email: 'Correspondence. Chunked and citable like any other text.',
+    'A recording transcript. Attach it to a meeting so the meeting can be analysed.',
+  email: 'Correspondence with the customer.',
   proposal: 'What was offered.',
-  contract: 'Terms. Citable, but not treated specially.',
+  contract: 'Contract terms.',
   note: 'Anything written by hand.',
 }
 
@@ -98,7 +98,7 @@ export function DocumentUpload({ dealId, busy, error, onUpload }: DocumentUpload
     } else if (file.size === 0) {
       // The server answers 422 "File contains no text to chunk", which is
       // right but arrives after the upload.
-      next.file = 'This file is empty, so there would be nothing to chunk.'
+      next.file = 'This file is empty.'
     }
     if (Object.keys(next).length) {
       setProblems(next)
@@ -164,9 +164,9 @@ export function DocumentUpload({ dealId, busy, error, onUpload }: DocumentUpload
         // and the actual next step.
         return error.status >= 500
           ? {
-              heading: 'The server failed while handling this upload',
+              heading: 'Something went wrong while uploading',
               body:
-                'Ingest is all-or-nothing, so the document was most likely not stored -- reload the list to check before retrying. The server log has the detail.',
+                'The document was most likely not saved. Refresh the list to check before trying again.',
             }
           : { heading: 'Upload failed', body: error.message }
     }
@@ -175,7 +175,7 @@ export function DocumentUpload({ dealId, busy, error, onUpload }: DocumentUpload
   return (
     <Card
       title="Add a document"
-      description="Everything the AI layer asserts is grounded in a document chunk, so this is where evidence enters the system."
+      description="Transcripts, emails and documents. Every AI finding cites one of these as its source."
     >
       <form
         className="ui-stack"
@@ -210,9 +210,8 @@ export function DocumentUpload({ dealId, busy, error, onUpload }: DocumentUpload
               />
               <p className="ui-field__hint">
                 {SUPPORTED_UPLOAD_EXTENSIONS.join(' ')} &middot; up to{' '}
-                {formatBytes(MAX_UPLOAD_BYTES)}. A PDF needs a real text layer -- a
-                scanned one is refused, because text recognition is deliberately not
-                supported.
+                {formatBytes(MAX_UPLOAD_BYTES)}. Scanned PDFs (images without selectable
+                text) are not supported.
               </p>
               {problems.file && <p className="ui-field__error">{problems.file}</p>}
             </div>
@@ -304,8 +303,7 @@ export function DocumentUpload({ dealId, busy, error, onUpload }: DocumentUpload
             that looks stuck. */}
         {busy && (
           <p className="ui-muted upload__note">
-            Extracting and chunking now. This happens inside the request, so a large PDF
-            takes a moment -- a document row is only created once its text has been read.
+            Reading the document now. Large files can take a moment.
           </p>
         )}
       </form>

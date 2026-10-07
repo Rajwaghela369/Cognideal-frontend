@@ -169,18 +169,6 @@ export function DealOverviewPage() {
         )}
       </Card>
 
-      {/* Noted rather than built. `GET /deals/{id}/timeline` does not exist --
-          `activities` was dropped in migration 0007 because the timeline is
-          derived, and the chat agent's `get_timeline` tool is the only thing
-          that assembles one. A timeline UI needs a new endpoint, and inventing
-          one client-side would mean asserting an ordering the server does not
-          define. */}
-      <p className="ui-muted" style={{ fontSize: 'var(--text-sm)' }}>
-        A combined timeline is not shown: there is no{' '}
-        <code>/deals/{'{id}'}/timeline</code> endpoint, and assembling one here would
-        assert an ordering the API does not define.
-      </p>
-
       {editing && (
         <DealEditForm
           deal={deal}
