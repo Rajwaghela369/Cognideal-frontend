@@ -21,7 +21,7 @@ interface NavItem {
  */
 const NAV: NavItem[] = [
   {
-    to: '/',
+    to: '/dashboard',
     label: 'Dashboard',
     end: true,
     icon: (

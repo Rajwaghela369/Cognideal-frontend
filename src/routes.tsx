@@ -43,6 +43,7 @@ export const router = createBrowserRouter([
     children: [
       // Phase 12. Last, because every number on it is established by 1-11.
       { index: true, element: <DashboardPage /> },
+      { path: 'dashboard', element: <DashboardPage /> },
 
       // ------------------------------------------------- Phase 2 and 3
       {
