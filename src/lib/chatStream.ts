@@ -1,6 +1,6 @@
 import { apiFetch, toApiError } from './api'
 import { chat } from './queries'
-import type { ChatStreamEvent } from './types'
+import type { ChatAction, ChatStreamEvent } from './types'
 
 export interface StreamHandlers {
   onDelta: (content: string) => void
@@ -8,6 +8,17 @@ export interface StreamHandlers {
   onError: (detail: string) => void
   /** Terminal. `message_id` is the persisted assistant message. */
   onDone: (messageId: string) => void
+  /** A drafted task or meeting, shown before the answer finishes. */
+  onAction?: (action: ChatAction) => void
+}
+
+/** The browser's IANA timezone, so "Friday at 3pm" means the user's Friday. */
+function browserTimezone(): string | undefined {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined
+  } catch {
+    return undefined
+  }
 }
 
 /**
@@ -38,7 +49,7 @@ export async function streamMessage(
 ): Promise<void> {
   const res = await apiFetch(chat.messagesPath(sessionId), {
     method: 'POST',
-    body: { content },
+    body: { content, timezone: browserTimezone() },
     signal,
   })
 
@@ -71,6 +82,7 @@ export async function streamMessage(
     if (event.type === 'delta') handlers.onDelta(event.content)
     else if (event.type === 'error') handlers.onError(event.detail)
     else if (event.type === 'done') handlers.onDone(event.message_id)
+    else if (event.type === 'action') handlers.onAction?.(event.action)
   }
 
   for (;;) {
