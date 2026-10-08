@@ -21,19 +21,55 @@
   width: 100%;
 }
 
+/* The deal mount fills the window below the deal header. `ChatPage` measures
+ * that and sets `--chat-fill-height`; the fallback is the full-page height. */
+.chat-page--embedded .chat {
+  height: var(--chat-fill-height, min(76vh, 900px));
+}
+
+.chat-page--embedded .chat__sessions {
+  max-height: none;
+}
+
 .chat {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
+  /* One row that may shrink below its content. Without `minmax(0, ...)` an
+   * auto row grows to fit the messages, and the thread grows with it. */
+  grid-template-rows: minmax(0, 1fr);
   gap: var(--space-5);
   align-items: stretch;
-  /* Fill the viewport below the header rather than sitting in a 520px box.
-   * The floor keeps it usable on a short window; the thread scrolls inside. */
-  min-height: min(76vh, 900px);
+  /* A fixed height, not a minimum: this is what bounds the thread so the
+   * messages scroll inside it. It used to be `min-height` only, so the box
+   * grew with every message and the page scrolled instead -- the composer
+   * drifted off-screen as a conversation got longer. The floor keeps it
+   * usable on a short window. */
+  height: min(76vh, 900px);
+  min-height: 420px;
 }
 
 @media (max-width: 860px) {
-  .chat {
+  /* Stacked: the session list above, the thread below. Each gets its own
+   * bounded height instead of sharing one row. */
+  .chat,
+  .chat-page--embedded .chat {
     grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    height: auto;
+    min-height: 0;
+  }
+
+  .chat-page--embedded .chat__sessions {
+    max-height: 30vh;
+  }
+
+  .chat__sessions {
+    max-height: 30vh;
+  }
+
+  .chat__thread {
+    height: 70vh;
+    min-height: 360px;
   }
 }
 
@@ -43,11 +79,14 @@
   /* Scrolls independently so a long session list cannot push the thread
    * out of the viewport. */
   max-height: min(76vh, 900px);
+  min-height: 0;
+  /* `overflow-y` only. A trailing `overflow: hidden` (there for the rounded
+   * corners) used to override it, so the list could not scroll at all. */
+  overflow-x: hidden;
   overflow-y: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--bg-elevated);
-  overflow: hidden;
 }
 
 .chat__empty {
@@ -122,6 +161,8 @@
   /* Grows to the grid row's height instead of declaring its own, so the
    * composer sits at the bottom of the available space. */
   min-height: 0;
+  /* Clips to the rounded border; the scrolling happens in `.chat__messages`. */
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--bg-elevated);
@@ -133,10 +174,24 @@
   flex-direction: column;
   gap: var(--space-4);
   padding: var(--space-5);
-  /* No cap: the thread's own height is bounded by the grid, so this scrolls
-   * within whatever room that leaves and the composer stays put. */
+  /* Takes the room the composer leaves and scrolls within it; the thread's
+   * height is fixed by `.chat`, so the composer stays put. */
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* A long word, URL or table cell must not widen the bubble past the thread. */
+.chat__bubble {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chat__bubble table,
+.chat__bubble pre {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .chat__bubble {
@@ -231,6 +286,7 @@
 /* --- Composer --- */
 
 .chat__composer {
+  flex-shrink: 0;
   display: flex;
   align-items: flex-end;
   gap: var(--space-3);
@@ -241,6 +297,8 @@
 .chat__input {
   flex: 1;
   min-height: 56px;
+  /* Capped: dragging the textarea taller must not push the thread away. */
+  max-height: 200px;
   resize: vertical;
 }
 

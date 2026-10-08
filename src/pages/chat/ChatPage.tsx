@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { chat, keys, system } from '../../lib/queries'
 import { streamMessage } from '../../lib/chatStream'
@@ -60,6 +60,42 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
   const [renaming, setRenaming] = useState<ChatSession | null>(null)
   const [renameValue, setRenameValue] = useState('')
   const abortRef = useRef<AbortController | null>(null)
+  // The scrolling thread, and whether it should follow new content. True while
+  // the reader is at (or near) the bottom; scrolling up to reread something
+  // turns it off, so a streaming answer does not yank them back down.
+  const threadRef = useRef<HTMLDivElement | null>(null)
+  const followRef = useRef(true)
+  const chatRef = useRef<HTMLDivElement | null>(null)
+
+  // The deal mount sits under the deal header and tabs, whose height varies
+  // (facts, account line, a wrapped title), so no fixed `vh` fits: 76vh plus
+  // the header pushed the composer below the fold. Measure where the chat
+  // starts and give it the rest of the window instead. The full-page mount
+  // keeps its CSS height.
+  useLayoutEffect(() => {
+    if (!dealId) return
+    const el = chatRef.current
+    if (!el) return
+    const scroller = el.closest<HTMLElement>('.app-content')
+    const fit = () => {
+      const top = el.getBoundingClientRect().top + (scroller?.scrollTop ?? window.scrollY)
+      const padding = scroller ? parseFloat(getComputedStyle(scroller).paddingBottom) || 0 : 0
+      const height = Math.max(420, Math.floor(window.innerHeight - top - padding))
+      el.style.setProperty('--chat-fill-height', `${height}px`)
+    }
+    fit()
+    window.addEventListener('resize', fit)
+    // The deal header can change height after load (and the AI-off callout
+    // appears once its query lands), which moves where the chat starts.
+    const observer =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(fit)
+    const page = el.closest<HTMLElement>('.page')
+    if (observer && page) observer.observe(page)
+    return () => {
+      window.removeEventListener('resize', fit)
+      observer?.disconnect()
+    }
+  }, [dealId])
 
   const sessions = useQuery({
     queryKey: keys.chatSessions(),
@@ -84,6 +120,18 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
     queryFn: () => chat.messages(active!.id),
     enabled: active !== null,
   })
+
+  // A different conversation opens at its latest message.
+  useEffect(() => {
+    followRef.current = true
+  }, [activeId])
+
+  // Keep the newest message in view as messages load, a question is sent and
+  // an answer streams in -- unless the reader has scrolled away.
+  useEffect(() => {
+    const el = threadRef.current
+    if (el && followRef.current) el.scrollTop = el.scrollHeight
+  }, [activeId, messages.data, pendingUser, streaming?.content, streaming?.error])
 
   const createSession = useMutation({
     mutationFn: () =>
@@ -124,6 +172,7 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
 
   const send = useCallback(
     async (sessionId: string, content: string) => {
+      followRef.current = true
       setPendingUser(content)
       setStreaming({ content: '', error: null })
       setDraft('')
@@ -211,7 +260,7 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
         </div>
       )}
 
-      <div className="chat">
+      <div className="chat" ref={chatRef}>
         <aside className="chat__sessions">
           {sessions.isPending ? (
             <LoadingBlock label="Loading..." />
@@ -272,7 +321,15 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
             />
           ) : (
             <>
-              <div className="chat__messages">
+              <div
+                className="chat__messages"
+                ref={threadRef}
+                onScroll={(event) => {
+                  const el = event.currentTarget
+                  followRef.current =
+                    el.scrollHeight - el.scrollTop - el.clientHeight < 80
+                }}
+              >
                 {messages.isPending ? (
                   <LoadingBlock label="Loading messages..." />
                 ) : messages.isError ? (
