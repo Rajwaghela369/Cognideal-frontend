@@ -85,7 +85,10 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
     if (!el) return
     const scroller = el.closest<HTMLElement>('.app-content')
     const fit = () => {
-      const top = el.getBoundingClientRect().top + (scroller?.scrollTop ?? window.scrollY)
+      // The window is what scrolls here (the app shell is not height-bound),
+      // so its offset counts; `.app-content`'s is added in case that changes.
+      const top =
+        el.getBoundingClientRect().top + window.scrollY + (scroller?.scrollTop ?? 0)
       const padding = scroller ? parseFloat(getComputedStyle(scroller).paddingBottom) || 0 : 0
       const height = Math.max(420, Math.floor(window.innerHeight - top - padding))
       el.style.setProperty('--chat-fill-height', `${height}px`)

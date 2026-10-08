@@ -19,6 +19,14 @@
   width: 240px;
   transition: width var(--ease);
   flex-shrink: 0;
+  /* Stays in view while the page scrolls, and is exactly one screen tall --
+   * which is what lets `.sidebar-footer` sit at the bottom of the window
+   * rather than at the bottom of a long page. */
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100svh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 32px;
@@ -87,6 +95,35 @@
    * longer there. */
   justify-content: center;
   padding: 10px 0;
+}
+
+.sidebar-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.sidebar-brand-link:hover {
+  text-decoration: none;
+}
+
+.sidebar-brand-link:hover .sidebar-brand-name {
+  color: var(--accent-2);
+}
+
+.app-shell.is-collapsed .sidebar-brand-link {
+  flex-direction: column;
+}
+
+/* Bottom of the sidebar: `margin-top: auto` takes up the space the nav
+ * leaves. */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
 }
 
 .sidebar-brand-mark {

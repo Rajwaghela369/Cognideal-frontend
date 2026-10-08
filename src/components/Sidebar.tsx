@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { NavLink } from 'react-router'
+import { Link, NavLink } from 'react-router'
 
 interface NavItem {
   to: string
@@ -93,8 +93,12 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <span className="sidebar-brand-mark" />
-        {!collapsed && <span className="sidebar-brand-name">CogniDeal</span>}
+        {/* The brand goes to the landing page, as a logo does on most sites.
+            A plain Link, not a NavLink: it is never "the current tab". */}
+        <Link to="/" className="sidebar-brand-link" title="Landing page" aria-label="Landing page">
+          <span className="sidebar-brand-mark" />
+          {!collapsed && <span className="sidebar-brand-name">CogniDeal</span>}
+        </Link>
         <button
           type="button"
           className="sidebar-collapse"
@@ -128,6 +132,26 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           </NavLink>
         ))}
       </nav>
+
+      {/* Pinned to the bottom and apart from the workspace tabs: it leaves the
+          app for the public landing page rather than opening another page in
+          it, and the Dashboard is the app's own start page. */}
+      <div className="sidebar-footer">
+        <Link
+          to="/"
+          className="sidebar-tab"
+          title={collapsed ? 'Landing page' : undefined}
+        >
+          <span className="sidebar-tab-icon">
+            <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6">
+              <path d="M11.5 3.5H16.5V8.5" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M16.5 3.5 9 11" strokeLinecap="round" />
+              <path d="M14.5 11.5V15a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 15V7A1.5 1.5 0 0 1 5 5.5h3.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          {!collapsed && <span className="sidebar-tab-label">Landing page</span>}
+        </Link>
+      </div>
     </aside>
   )
 }
