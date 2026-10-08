@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { chat, keys, system } from '../../lib/queries'
 import { streamMessage } from '../../lib/chatStream'
-import type { ChatCitation, ChatMessage, ChatSession } from '../../lib/types'
+import type { ChatAction, ChatCitation, ChatMessage, ChatSession } from '../../lib/types'
 import { formatRelative } from '../../lib/format'
 import { errorMessage } from '../../lib/errorMessage'
 import {
@@ -19,6 +19,7 @@ import {
 import { ChunkQuote } from '../../components/evidence'
 import { Markdown } from '../../components/Markdown'
 import { PageHeader } from '../../components/PageHeader'
+import { ChatActionCard } from './ChatActionCard'
 import { CitationList } from './CitationList'
 import { citationToEvidence } from './citationToEvidence'
 import './chat.css'
@@ -54,7 +55,12 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
 
   const [activeId, setActiveId] = useState<string | null>(null)
   const [draft, setDraft] = useState('')
-  const [streaming, setStreaming] = useState<{ content: string; error: string | null } | null>(null)
+  const [streaming, setStreaming] = useState<{
+    content: string
+    error: string | null
+    /** Drafts that arrived mid-answer, shown before the message is saved. */
+    actions: ChatAction[]
+  } | null>(null)
   const [pendingUser, setPendingUser] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<ChatSession | null>(null)
   const [renaming, setRenaming] = useState<ChatSession | null>(null)
@@ -131,7 +137,14 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
   useEffect(() => {
     const el = threadRef.current
     if (el && followRef.current) el.scrollTop = el.scrollHeight
-  }, [activeId, messages.data, pendingUser, streaming?.content, streaming?.error])
+  }, [
+    activeId,
+    messages.data,
+    pendingUser,
+    streaming?.content,
+    streaming?.error,
+    streaming?.actions.length,
+  ])
 
   const createSession = useMutation({
     mutationFn: () =>
@@ -174,7 +187,7 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
     async (sessionId: string, content: string) => {
       followRef.current = true
       setPendingUser(content)
-      setStreaming({ content: '', error: null })
+      setStreaming({ content: '', error: null, actions: [] })
       setDraft('')
 
       const controller = new AbortController()
@@ -193,6 +206,10 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
             // partial answer above it is not thrown away.
             onError: (detail) =>
               setStreaming((current) => (current ? { ...current, error: detail } : current)),
+            onAction: (action) =>
+              setStreaming((current) =>
+                current ? { ...current, actions: [...current.actions, action] } : current,
+              ),
             // Task 10.4: on `done`, the persisted message is authoritative.
             // Refetching and clearing the optimistic bubble is what reconciles
             // them -- keeping the streamed text would double the answer once
@@ -211,7 +228,9 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
       } catch (error) {
         // A real HTTP failure, as opposed to an in-stream error event.
         setStreaming((current) =>
-          current ? { ...current, error: errorMessage(error) } : { content: '', error: errorMessage(error) },
+          current
+            ? { ...current, error: errorMessage(error) }
+            : { content: '', error: errorMessage(error), actions: [] },
         )
       } finally {
         abortRef.current = null
@@ -340,6 +359,7 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
                       <MessageBubble
                         key={message.id}
                         message={message}
+                        sessionId={active.id}
                         onOpenCitation={setCitation}
                       />
                     ))}
@@ -364,6 +384,18 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
                               <Spinner size={13} /> Thinking...
                             </p>
                           )
+                        )}
+                        {streaming.actions.length > 0 && (
+                          <div className="chat__actions">
+                            {streaming.actions.map((action) => (
+                              <ChatActionCard
+                                key={action.id}
+                                action={action}
+                                sessionId={active.id}
+                                messageId={null}
+                              />
+                            ))}
+                          </div>
                         )}
                         {streaming.error && (
                           <div className="ui-callout ui-callout--danger chat__error">
@@ -481,9 +513,11 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
 
 function MessageBubble({
   message,
+  sessionId,
   onOpenCitation,
 }: {
   message: ChatMessage
+  sessionId: string
   onOpenCitation: (citation: ChatCitation) => void
 }) {
   const isUser = message.role === 'user'
@@ -496,6 +530,18 @@ function MessageBubble({
         <p className="chat__text">{message.content}</p>
       ) : (
         <Markdown>{message.content}</Markdown>
+      )}
+      {!isUser && (message.actions ?? []).length > 0 && (
+        <div className="chat__actions">
+          {message.actions.map((action) => (
+            <ChatActionCard
+              key={action.id}
+              action={action}
+              sessionId={sessionId}
+              messageId={message.id}
+            />
+          ))}
+        </div>
       )}
       {!isUser && message.citations.length > 0 && (
         <CitationList citations={message.citations} onOpen={onOpenCitation} />

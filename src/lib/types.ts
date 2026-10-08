@@ -745,6 +745,11 @@ export interface MeetingAnalysis {
    * independently of the status, or a partially-degraded run reads as clean.
    */
   analysis_error: string | null
+  /** What the run produced. Only set once `complete`. */
+  facts_count?: number | null
+  evidence_count?: number | null
+  /** The deal's open risks after the run -- detection reads the whole deal. */
+  open_risks_count?: number | null
 }
 
 export interface MeetingBrief {
@@ -1160,6 +1165,47 @@ export interface ChatCitation {
   char_end: number | null
 }
 
+export interface ChatActionAttendee {
+  raw_name: string
+  /** Set when the name matched a contact on the deal's account. */
+  contact_id: string | null
+  contact_name: string | null
+}
+
+export interface ChatTaskFields {
+  title: string
+  description: string | null
+  /** `YYYY-MM-DD`. */
+  due_date: string | null
+  priority: string
+}
+
+export interface ChatMeetingFields {
+  title: string
+  meeting_type: string
+  /** ISO 8601 with offset. */
+  scheduled_at: string | null
+  attendees: ChatActionAttendee[]
+}
+
+/**
+ * A task or meeting the assistant drafted. Nothing exists until the user
+ * clicks Create, which calls `chat.applyAction`; see the backend's
+ * `services/chat_actions.py`.
+ */
+export type ChatAction = {
+  id: string
+  status: 'proposed' | 'created' | 'cancelled'
+  deal_id: string
+  deal_name: string | null
+  /** The task or meeting id once created. */
+  created_id: string | null
+  decided_at: string | null
+} & (
+  | { kind: 'task'; fields: ChatTaskFields }
+  | { kind: 'meeting'; fields: ChatMeetingFields }
+)
+
 export interface ChatMessage {
   id: string
   session_id: string
@@ -1171,6 +1217,7 @@ export interface ChatMessage {
   latency_ms: number | null
   created_at: string
   citations: ChatCitation[]
+  actions: ChatAction[]
 }
 
 /**
@@ -1185,3 +1232,5 @@ export type ChatStreamEvent =
   | { type: 'delta'; content: string }
   | { type: 'error'; detail: string }
   | { type: 'done'; message_id: string }
+  /** A draft tool ran; the card can show before the answer finishes. */
+  | { type: 'action'; action: ChatAction }

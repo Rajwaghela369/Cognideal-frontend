@@ -29,6 +29,7 @@ import type {
   Account,
   AccountListItem,
   AccountWrite,
+  ChatAction,
   Contact,
   ContactWrite,
   DealAnalysisStateResponse,
@@ -645,4 +646,25 @@ export const chat = {
 
   /** The SSE path. Consumed by `streamMessage` in `lib/chatStream.ts`. */
   messagesPath: (sessionId: string) => `/chat/sessions/${sessionId}/messages`,
+
+  /**
+   * Create a drafted task or meeting, with the user's edits. Idempotent on the
+   * server: a draft already created returns the row it made.
+   */
+  applyAction: (
+    sessionId: string,
+    messageId: string,
+    actionId: string,
+    fields?: Record<string, unknown>,
+  ) =>
+    apiJson<ChatAction>(
+      `/chat/sessions/${sessionId}/messages/${messageId}/actions/${actionId}/apply`,
+      { method: 'POST', body: { fields: fields ?? null } },
+    ),
+
+  cancelAction: (sessionId: string, messageId: string, actionId: string) =>
+    apiJson<ChatAction>(
+      `/chat/sessions/${sessionId}/messages/${messageId}/actions/${actionId}/cancel`,
+      { method: 'POST' },
+    ),
 }
