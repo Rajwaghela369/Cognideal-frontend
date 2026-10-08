@@ -1,3 +1,4 @@
+import { useId, useState } from 'react'
 import type { ChatCitation } from '../../lib/types'
 import { SOURCE_KIND_LABELS } from '../../lib/verification'
 import { Badge, Button } from '../../components/ui'
@@ -17,12 +18,31 @@ export interface CitationListProps {
  * The `handle` is shown because the answer text refers to it, so a reader can
  * match a sentence to its source rather than guessing which of four citations
  * supports which claim.
+ *
+ * Collapsed by default behind a "Sources (n)" toggle. Listed open, a long
+ * answer's sources pushed the conversation apart; the count still says the
+ * answer is backed, and one click shows by what.
  */
 export function CitationList({ citations, onOpen }: CitationListProps) {
+  const [open, setOpen] = useState(false)
+  const listId = useId()
+
   return (
     <div className="chat__citations">
-      <span className="chat__citations-label">Sources</span>
-      <ul className="chat__citation-list">
+      <button
+        type="button"
+        className={`chat__citations-toggle${open ? ' is-open' : ''}`}
+        aria-expanded={open}
+        aria-controls={listId}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="chat__citations-label">Sources</span>
+        <span className="chat__citations-count">{citations.length}</span>
+        <svg className="chat__citations-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+      <ul id={listId} className="chat__citation-list" hidden={!open}>
         {citations.map((citation) => {
           const kind = SOURCE_KIND_LABELS[citation.source_kind]
           return (
