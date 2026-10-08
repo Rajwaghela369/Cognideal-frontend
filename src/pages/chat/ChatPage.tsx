@@ -20,6 +20,7 @@ import { ChunkQuote } from '../../components/evidence'
 import { Markdown } from '../../components/Markdown'
 import { PageHeader } from '../../components/PageHeader'
 import { ChatActionCard } from './ChatActionCard'
+import { ChatUsageBar } from './ChatUsageBar'
 import { CitationList } from './CitationList'
 import { citationToEvidence } from './citationToEvidence'
 import './chat.css'
@@ -114,6 +115,15 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
     staleTime: 60_000,
   })
 
+  // Today's share of the daily question limit. Refreshed after every send
+  // and once a minute, so a limit reached from another tab -- or the
+  // midnight reset -- shows up without a reload.
+  const usage = useQuery({
+    queryKey: keys.chatUsage(),
+    queryFn: chat.usage,
+    refetchInterval: 60_000,
+  })
+
   // Only this scope's sessions. A global session has no `deal_id`; a deal
   // session's must match, and the two lists must not bleed into each other.
   const scoped = (sessions.data ?? []).filter((s) =>
@@ -182,6 +192,9 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
   })
 
   const aiEnabled = ai.data?.config.enabled !== false
+  // A limit of 0 is "unlimited", so it never counts as reached.
+  const limitReached = Boolean(usage.data?.limit && usage.data.remaining === 0)
+  const canChat = aiEnabled && !limitReached
 
   const send = useCallback(
     async (sessionId: string, content: string) => {
@@ -234,6 +247,9 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
         )
       } finally {
         abortRef.current = null
+        // Counted server-side the moment the question is saved, whatever
+        // happened to the answer -- and a 429 means the bar is now full.
+        void queryClient.invalidateQueries({ queryKey: keys.chatUsage() })
       }
     },
     [queryClient],
@@ -241,7 +257,7 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
 
   const handleSubmit = async () => {
     const content = draft.trim()
-    if (!content) return
+    if (!content || !canChat) return
     let sessionId = active?.id
     if (!sessionId) {
       const session = await createSession.mutateAsync()
@@ -263,11 +279,27 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
         title={title}
         subtitle={subtitle}
         actions={
-          <Button variant="primary" onClick={() => createSession.mutate()} loading={createSession.isPending}>
+          <Button
+            variant="primary"
+            onClick={() => createSession.mutate()}
+            loading={createSession.isPending}
+            disabled={limitReached}
+          >
             New conversation
           </Button>
         }
       />
+
+      {usage.data && <ChatUsageBar usage={usage.data} />}
+
+      {aiEnabled && limitReached && (
+        <div className="ui-callout ui-callout--warn">
+          <strong>Today&rsquo;s chat limit has been reached.</strong> Your conversations
+          are still here to read; asking new questions is available again after midnight
+          ({usage.data?.timezone.replace('_', ' ')} time). Meeting analysis, briefs and risk
+          checks are not affected.
+        </div>
+      )}
 
       {!aiEnabled && (
         /* Task 10.7. Unlike the risk detector there is no deterministic
@@ -423,9 +455,13 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
                   value={draft}
                   rows={2}
                   placeholder={
-                    aiEnabled ? 'Ask about this deal...' : 'The assistant is unavailable'
+                    !aiEnabled
+                      ? 'The assistant is unavailable'
+                      : limitReached
+                        ? 'Daily limit reached. Available again after midnight.'
+                        : 'Ask about this deal...'
                   }
-                  disabled={!aiEnabled || busy}
+                  disabled={!canChat || busy}
                   onChange={(event) => setDraft(event.target.value)}
                   onKeyDown={(event) => {
                     // Enter sends, shift+Enter adds a line -- the convention
@@ -452,7 +488,7 @@ export function ChatPage({ dealId, title, subtitle }: ChatPageProps) {
                     <Button
                       type="submit"
                       variant="primary"
-                      disabled={!aiEnabled || !draft.trim()}
+                      disabled={!canChat || !draft.trim()}
                     >
                       Send
                     </Button>

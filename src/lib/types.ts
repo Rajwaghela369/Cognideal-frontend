@@ -1165,6 +1165,17 @@ export interface ChatCitation {
   char_end: number | null
 }
 
+/** Today's chat questions against the shared daily limit. */
+export interface ChatUsage {
+  /** 0 when the limit is switched off. */
+  limit: number
+  used: number
+  remaining: number | null
+  /** Next local midnight in `timezone`. */
+  resets_at: string
+  timezone: string
+}
+
 export interface ChatActionAttendee {
   raw_name: string
   /** Set when the name matched a contact on the deal's account. */

@@ -30,6 +30,7 @@ import type {
   AccountListItem,
   AccountWrite,
   ChatAction,
+  ChatUsage,
   Contact,
   ContactWrite,
   DealAnalysisStateResponse,
@@ -180,6 +181,7 @@ export const keys = {
 
   chatSessions: () => ['chat', 'sessions'] as const,
   chatMessages: (sessionId: string) => ['chat', 'sessions', sessionId, 'messages'] as const,
+  chatUsage: () => ['chat', 'usage'] as const,
 } as const
 
 // ------------------------------------------------------------------ System
@@ -643,6 +645,9 @@ export const chat = {
 
   messages: (sessionId: string) =>
     apiJson<ChatMessage[]>(`/chat/sessions/${sessionId}/messages`),
+
+  /** Today's questions against the daily limit. */
+  usage: () => apiJson<ChatUsage>('/chat/usage'),
 
   /** The SSE path. Consumed by `streamMessage` in `lib/chatStream.ts`. */
   messagesPath: (sessionId: string) => `/chat/sessions/${sessionId}/messages`,

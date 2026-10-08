@@ -392,3 +392,59 @@
   margin-top: var(--space-3);
   font-size: var(--text-sm);
 }
+
+/* --- Daily usage bar (no numbers on purpose; see ChatUsageBar) --- */
+
+.chat-usage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.chat-usage__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  font-size: var(--text-sm);
+}
+
+.chat-usage__label {
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.chat-usage__caption {
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+}
+
+.chat-usage__track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.chat-usage__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-2);
+  transition: width 400ms ease, background-color 400ms ease;
+}
+
+.chat-usage--low .chat-usage__fill {
+  background: var(--warn);
+}
+
+.chat-usage--full .chat-usage__fill {
+  background: var(--danger);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-usage__fill {
+    transition: none;
+  }
+}
