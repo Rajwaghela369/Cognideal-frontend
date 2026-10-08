@@ -1,11 +1,20 @@
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { ApiError } from '../../lib/api'
 import { keys, meetings } from '../../lib/queries'
-import type { MeetingDetail } from '../../lib/types'
+import type { MeetingAnalysis, MeetingDetail } from '../../lib/types'
 import { formatDateTime, humanise, meetingAnalysisLabel, sentimentTone } from '../../lib/format'
 import { errorMessage } from '../../lib/errorMessage'
-import { Badge, Button, Card, useToast } from '../../components/ui'
+import { Badge, Button, Card, Spinner, useToast } from '../../components/ui'
+
+/** How long the completion notice stays before it dismisses itself. */
+const NOTICE_MS = 12_000
+
+function isActive(status: string | undefined): boolean {
+  return status === 'queued' || status === 'running'
+}
 
 export interface MeetingAnalysisPanelProps {
   meeting: MeetingDetail
@@ -61,6 +70,41 @@ export function MeetingAnalysisPanel({ meeting, aiEnabled }: MeetingAnalysisPane
   })
 
   const data = analysis.data
+  const status = data?.analysis_status
+
+  // The completion notice. Shown only on a transition this screen watched --
+  // queued or running, then complete -- never for a run that finished before
+  // the page was opened, which would announce old news on every visit.
+  //
+  // Compared during render (React's "adjust state when a prop changes"
+  // pattern) rather than in an effect, so the notice appears in the same
+  // render as the new status instead of one render later.
+  const [notice, setNotice] = useState<MeetingAnalysis | null>(null)
+  const [failures, setFailures] = useState(0)
+  const [previousStatus, setPreviousStatus] = useState(status)
+  if (status !== previousStatus) {
+    setPreviousStatus(status)
+    if (data && isActive(previousStatus) && !isActive(status)) {
+      if (status === 'complete') setNotice(data)
+      else if (status === 'failed') setFailures((n) => n + 1)
+    }
+  }
+
+  // The run wrote facts, evidence and risks that other tabs show.
+  useEffect(() => {
+    if (notice) void queryClient.invalidateQueries()
+  }, [notice, queryClient])
+
+  useEffect(() => {
+    if (failures) toast.error('Analysis failed. The reason is shown on the meeting.')
+  }, [failures, toast])
+
+  useEffect(() => {
+    if (!notice) return
+    const timer = window.setTimeout(() => setNotice(null), NOTICE_MS)
+    return () => window.clearTimeout(timer)
+  }, [notice])
+
   const label = data ? meetingAnalysisLabel(data.analysis_status) : null
   const complete = data?.analysis_status === 'complete'
   // A failed run is still a run that happened, so the verb is the same.
@@ -92,6 +136,19 @@ export function MeetingAnalysisPanel({ meeting, aiEnabled }: MeetingAnalysisPane
       }
     >
       <div className="ui-stack">
+        {isActive(status) && (
+          /* The run is in the worker's hands, which can take a minute or two
+             (and longer if the free host was asleep). Said with a spinner so
+             it reads as working, not stuck. */
+          <div className="analysis-panel__running" role="status" aria-live="polite">
+            <Spinner size={16} />
+            <span>
+              {status === 'running' ? 'Analysing the transcript' : 'Queued for analysis'}
+              &hellip; this usually takes a minute or two.
+            </span>
+          </div>
+        )}
+
         {label && (
           <div className="ui-row">
             <Badge tone={label.tone}>{label.label}</Badge>
@@ -171,6 +228,58 @@ export function MeetingAnalysisPanel({ meeting, aiEnabled }: MeetingAnalysisPane
           </div>
         )}
       </div>
+
+      {notice &&
+        createPortal(
+          <AnalysisNotice
+            result={notice}
+            dealId={meeting.deal_id}
+            onClose={() => setNotice(null)}
+          />,
+          document.body,
+        )}
     </Card>
+  )
+}
+
+/**
+ * The small card that pops up when a run this screen was watching completes.
+ * Portalled to `<body>` so no ancestor's overflow or transform can clip or
+ * re-anchor a fixed-position element.
+ */
+function AnalysisNotice({
+  result,
+  dealId,
+  onClose,
+}: {
+  result: MeetingAnalysis
+  dealId: string
+  onClose: () => void
+}) {
+  const stats = [
+    { label: 'Facts', value: result.facts_count, to: `/deals/${dealId}/facts` },
+    { label: 'Evidence', value: result.evidence_count, to: `/deals/${dealId}/facts` },
+    { label: 'Open risks', value: result.open_risks_count, to: `/deals/${dealId}/risks` },
+  ]
+  return (
+    <div className="analysis-notice" role="status" aria-live="polite">
+      <div className="analysis-notice__head">
+        <strong>Analysis complete</strong>
+        <button type="button" className="analysis-notice__close" onClick={onClose} aria-label="Dismiss">
+          &times;
+        </button>
+      </div>
+      <div className="analysis-notice__stats">
+        {stats.map((stat) => (
+          <Link key={stat.label} to={stat.to} className="analysis-notice__stat" onClick={onClose}>
+            <span className="analysis-notice__value">{stat.value ?? '–'}</span>
+            <span className="analysis-notice__label">{stat.label}</span>
+          </Link>
+        ))}
+      </div>
+      {result.analysis_error && (
+        <p className="analysis-notice__warn">Some stages did not finish; see the meeting for details.</p>
+      )}
+    </div>
   )
 }

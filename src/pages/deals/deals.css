@@ -768,3 +768,112 @@
   font-size: var(--text-sm);
   line-height: 1.6;
 }
+
+/* --- Meeting analysis: in-progress line and completion notice --- */
+
+.analysis-panel__running {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-md);
+  background: var(--accent-bg);
+  color: var(--text-h);
+  font-size: var(--text-sm);
+}
+
+.analysis-notice {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 1000;
+  width: min(340px, calc(100vw - 2 * var(--space-5)));
+  padding: var(--space-4);
+  border: 1px solid var(--accent-border);
+  border-radius: var(--radius-lg);
+  background: var(--bg-elevated);
+  box-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.6), 0 0 24px -8px var(--accent-glow);
+  color: var(--text-h);
+  animation: analysis-notice-in 220ms ease-out;
+}
+
+@keyframes analysis-notice-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analysis-notice {
+    animation: none;
+  }
+}
+
+.analysis-notice__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.analysis-notice__close {
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-size: var(--text-lg);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.analysis-notice__close:hover {
+  color: var(--text-h);
+}
+
+.analysis-notice__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.analysis-notice__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-h);
+  text-decoration: none;
+}
+
+.analysis-notice__stat:hover {
+  border-color: var(--accent-border);
+  text-decoration: none;
+}
+
+.analysis-notice__value {
+  font-size: var(--text-xl);
+  font-weight: 600;
+}
+
+.analysis-notice__label {
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.analysis-notice__warn {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+}

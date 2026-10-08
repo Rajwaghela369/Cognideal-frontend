@@ -3,6 +3,14 @@ import { deals, keys, system } from '../../lib/queries'
 import { analysisExplanation, analysisLabel, formatRelative } from '../../lib/format'
 import { Badge, Button, errorMessage, useToast } from '../../components/ui'
 
+/**
+ * Hidden for now, not removed: the same six checks already run on every
+ * relevant write and in the daily sweep, so the manual trigger is not needed
+ * day to day. Flip to `true` to bring the button back -- the mutation and
+ * its handling below are intact.
+ */
+const SHOW_RUN_CHECKS = false
+
 export interface AnalysisPanelProps {
   dealId: string
 }
@@ -103,15 +111,22 @@ export function AnalysisPanel({ dealId }: AnalysisPanelProps) {
           )}
         </div>
 
-        <Button onClick={() => run.mutate()} loading={run.isPending}>
-          Run checks
-        </Button>
+        {SHOW_RUN_CHECKS && (
+          <Button onClick={() => run.mutate()} loading={run.isPending}>
+            Run checks
+          </Button>
+        )}
       </div>
 
       {aiDisabled && (
         <div className="ui-callout ui-callout--warn">
-          <strong>AI features are turned off.</strong> &ldquo;Run checks&rdquo; still works,
-          but facts, meeting briefs and the assistant are unavailable until AI is enabled.
+          <strong>AI features are turned off.</strong>{' '}
+          {SHOW_RUN_CHECKS ? (
+            <>&ldquo;Run checks&rdquo; still works, but facts</>
+          ) : (
+            <>The rule-based risk checks still run, but facts</>
+          )}
+          , meeting briefs and the assistant are unavailable until AI is enabled.
         </div>
       )}
 
